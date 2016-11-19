@@ -1,5 +1,6 @@
 package net.ramapuram.elia.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -10,7 +11,7 @@ import java.util.List;
  * Created by Elia Thomas Ramapuram on 29/09/16.
  * as part of the Computer Science Project 2016-17
  */
-public class Movie {
+public class Movie implements Serializable {
     private String name;
     private int copies;
     private String[] actorList;

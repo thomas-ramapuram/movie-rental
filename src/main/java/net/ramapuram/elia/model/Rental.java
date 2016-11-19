@@ -1,12 +1,13 @@
 package net.ramapuram.elia.model;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * Created by Elia Thomas Ramapuram on 29/09/16.
  * as part of the Computer Science Project 2016-17
  */
-public class Rental {
+public class Rental implements Serializable {
     private Date rentedOn;
     private Date returnedOn;
     private String customer;
