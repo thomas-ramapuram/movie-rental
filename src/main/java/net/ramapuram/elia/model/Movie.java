@@ -95,12 +95,12 @@ public class Movie implements Serializable {
     @Override
     public String toString() {
         return "Movie{" +
-                "name='" + name + '\'' +
-                ", copies=" + copies +
-                ", actorList=" + Arrays.toString(actorList) +
-                ", reviews=" + reviews +
-                ", rentalList=" + rentalList +
-                '}';
+                "\n\tname='" + name + "\'" +
+                ", \n\tcopies=" + copies +
+                ", \n\tactorList=" + Arrays.toString(actorList) +
+                ", \n\treviews=" + reviews +
+                ", \n\trentalList=" + rentalList +
+                "\n}";
     }
 
 }

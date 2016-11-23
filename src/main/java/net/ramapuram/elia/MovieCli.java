@@ -15,16 +15,20 @@ public class MovieCli {
     private final static Logger LOGGER = Logger.getLogger(MovieCli.class.getName());
 
 
-    private static final int EXIT = 10;
-    private static final int VIEW_MOVIE_DETAILS = 1;
-    private static final int REMOVE_MOVIE = 2;
-    private static final int RENT_MOVIE = 3;
-    private static final int ADD_MOVIE = 4;
-    private static final int AVAILABLE_MOVIES = 5;
-    private static final int ALL_MOVIES = 6;
-    private static final int LOAD_DATABASE = 7;
-    private static final int SAVE_DATABASE = 8;
-    private static final int RETURN_MOVIE = 9;
+    private static final int EXIT                   =  1;
+    private static final int AVAILABLE_MOVIES       =  2;
+    private static final int ALL_MOVIES             =  3;
+    private static final int VIEW_MOVIE_DETAILS     =  4;
+    private static final int ADD_MOVIE              =  5;
+    private static final int REMOVE_MOVIE           =  6;
+    private static final int REMOVE_ALL_MOVIES      =  7;
+    private static final int RENT_MOVIE             =  8;
+    private static final int RETURN_MOVIE           =  9;
+    private static final int LOAD_DATABASE          = 10;
+    private static final int SAVE_DATABASE          = 11;
+    private static final int SERIALIZE_DATABASE     = 12;
+    private static final int DE_SERIALIZE_DATABASE  = 13;
+
 
     private static MovieRentalManager manager = new MovieRentalManagerImpl();
 
@@ -70,6 +74,9 @@ public class MovieCli {
                 case RETURN_MOVIE:
                     returnMovie();
                     break;
+                case REMOVE_ALL_MOVIES:
+                    manager.deleteAll();
+                    break;
                 default:
                     System.out.format("There was a problem with your choice.  Try Again or type %d to exit\n", EXIT);
             }
@@ -80,18 +87,22 @@ public class MovieCli {
 
     private static void printMenu() {
         int count = 0;
-        Map<Integer, String> menuMap = new HashMap<Integer, String>() {{
-            put(10, "Exit");
-            put(1, "View Movie Details");
-            put(2, "Remove Movie");
-            put(3, "Rent Movie");
-            put(4, "Add Movie");
-            put(5, "Available Movies");
-            put(6, "All Movies");
-            put(7, "Load Database");
-            put(8, "Save Database");
-            put(9, "Return Movie");
+        Map<Integer, String> menuMap = new LinkedHashMap<Integer, String>() {{
+            put(EXIT,                   "Exit");
+            put(VIEW_MOVIE_DETAILS,     "View Movie Details");
+            put(REMOVE_MOVIE,           "Remove Movie");
+            put(RENT_MOVIE,             "Rent Movie");
+            put(ADD_MOVIE,              "Add Movie");
+            put(AVAILABLE_MOVIES,       "Available Movies");
+            put(ALL_MOVIES,             "All Movies");
+            put(LOAD_DATABASE,          "Load Database");
+            put(SAVE_DATABASE,          "Save Database");
+            put(RETURN_MOVIE,           "Return Movie");
+//            put(SERIALIZE_DATABASE,     "Serialize Database");
+//            put(DE_SERIALIZE_DATABASE,  "Deserialize Database");
+            put(REMOVE_ALL_MOVIES,      "Remove All Movies");
         }};
+        menuMap = sortMap(menuMap);
         String deco = Util.repeat('=', 80);
         System.out.printf("\n%sMenu%s\n", deco,deco);
         System.out.println("Enter your Choice");
@@ -105,26 +116,51 @@ public class MovieCli {
         System.out.printf("\n%sMenu%s\n", deco,deco);
     }
 
+    private static Map<Integer,String> sortMap(Map<Integer, String> menuMap) {
+        List<Map.Entry<Integer,String>> entries =
+                new ArrayList<Map.Entry<Integer, String>>(menuMap.entrySet());
+        Collections.sort(entries, new Comparator<Map.Entry<Integer,String>>() {
+            public int compare(Map.Entry<Integer,String> a, Map.Entry<Integer,String> b){
+                return a.getKey().compareTo(b.getKey());
+            }
+        });
+        Map<Integer, String> sortedMap = new LinkedHashMap<Integer, String>();
+        for (Map.Entry<Integer,String> entry : entries) {
+            sortedMap.put(entry.getKey(), entry.getValue());
+        }
+        return sortedMap;
+    }
+
     private static void displayMovies(List<Movie> movieList) {
         int count = 0;
-        System.out.println(Util.repeat('=',120));
-        System.out.printf("|%30s|%7s|", "Movie Name", "Copies");
-        System.out.printf("|%30s|%7s|", "Movie Name", "Copies");
-        System.out.printf("|%30s|%7s|\n", "Movie Name", "Copies");
-        System.out.println(Util.repeat('=',120));
-        for (Movie movie : manager.getAllMovies()) {
+        System.out.println(Util.repeat('=',166));
+        System.out.print("|");
+        for(int x=0; x<5;x++){
+            System.out.printf("%29s:%2s|", "Movie Name", "No");
+        }
+        System.out.println();
+        System.out.println(Util.repeat('=',166));
+        System.out.print("|");
+        movieList.sort(new Comparator<Movie>() {
+            @Override
+            public int compare(Movie o1, Movie o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+        for (Movie movie : movieList) {
             count++;
             String movieName = movie.getName();
             if(movieName.length() > 30){
-                movieName = movieName.substring(0, 27) + "...";
+                movieName = movieName.substring(0, 26) + "...";
             }
-            System.out.printf("|%30s|%7d|", movieName, movie.getCopies());
-            if(count%3 == 0){
+            System.out.printf("%29s:%2d|", movieName, movie.getCopies());
+            if(count%5 == 0){
                 System.out.println();
+                System.out.print("|");
             }
         }
         System.out.println();
-        System.out.println(Util.repeat('=',120));
+        System.out.println(Util.repeat('=',166));
     }
 
     private static void exit() {
@@ -196,7 +232,11 @@ public class MovieCli {
         System.out.println("Type name of Movie");
         String movieName = getInput();
         Movie selectedMovie = manager.getMovie(movieName);
-        System.out.println(selectedMovie.toString());
+        if(selectedMovie!=null){
+            System.out.println(selectedMovie.toString());
+        } else {
+            System.out.println("No Such Movie");
+        }
     }
 
     private static String getInput(){

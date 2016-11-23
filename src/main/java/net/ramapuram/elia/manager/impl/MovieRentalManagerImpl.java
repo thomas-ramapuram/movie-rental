@@ -1,8 +1,5 @@
 package net.ramapuram.elia.manager.impl;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonReader;
 import net.ramapuram.elia.manager.MovieRentalManager;
 import net.ramapuram.elia.model.Movie;
 
@@ -16,7 +13,8 @@ import java.util.*;
  */
 public class MovieRentalManagerImpl implements MovieRentalManager {
     private Map<String, Movie> data = new HashMap<String, Movie>();
-    public static final String FILE_PATH = System.getProperty("user.home") + File.separator + ".moviedb" + File.separator + "movies.json";
+    public static final String FILE_PATH_JSON = System.getProperty("user.home") + File.separator + ".moviedb" + File.separator + "movies.json";
+    public static final String FILE_PATH_BIN = System.getProperty("user.home") + File.separator + ".moviedb" + File.separator + "movies.ser";
 
     public Movie getMovie(String name) {
         return data.get(name);
@@ -68,18 +66,20 @@ public class MovieRentalManagerImpl implements MovieRentalManager {
     }
 
     public void loadDatabase() {
-        FileReader fileReader = null;
-
         try {
-            fileReader = new FileReader(FILE_PATH);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            FileInputStream fileIn = new FileInputStream(FILE_PATH_BIN);
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            data = (HashMap<String, Movie>) in.readObject();
+            in.close();
+            fileIn.close();
+        }catch(IOException i) {
+            i.printStackTrace();
+            return;
+        }catch(ClassNotFoundException c) {
+            System.out.println("Class not found");
+            c.printStackTrace();
+            return;
         }
-        JsonReader reader = new JsonReader(fileReader);
-
-        Type listType = new TypeToken<HashMap<String,Movie>>(){}.getType();
-
-        data = new Gson().fromJson(reader, listType);
     }
 
     public void deleteAll() {
@@ -87,42 +87,16 @@ public class MovieRentalManagerImpl implements MovieRentalManager {
     }
 
     public void saveDatabase() {
-        File file = new File(FILE_PATH);
-
-        // if file does not exists, then create it
-        if (!file.exists()) {
-            try {
-                file.getParentFile().mkdirs();
-                file.createNewFile()    ;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        try {
+            FileOutputStream fileOut =
+                    new FileOutputStream(FILE_PATH_BIN);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(data);
+            out.close();
+            fileOut.close();
+            System.out.printf("Serialized data is saved in "+FILE_PATH_BIN);
+        }catch(IOException i) {
+            i.printStackTrace();
         }
-        Gson gson = new Gson();
-        BufferedWriter writer = null;
-        try
-        {
-            writer = new BufferedWriter( new FileWriter(file));
-            writer.write(gson.toJson(data));
-
-        }
-        catch ( IOException e)
-        {
-            e.printStackTrace();
-        }
-        finally
-        {
-            try
-            {
-                if ( writer != null)
-                    writer.close( );
-            }
-            catch ( IOException e)
-            {
-                e.printStackTrace();
-            }
-        }
-
-
     }
 }

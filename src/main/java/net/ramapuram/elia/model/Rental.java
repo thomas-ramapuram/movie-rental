@@ -41,9 +41,9 @@ public class Rental implements Serializable {
     @Override
     public String toString() {
         return "Rental{" +
-                "rentedOn=" + rentedOn +
-                ", returnedOn=" + returnedOn +
-                ", customer='" + customer + '\'' +
-                '}';
+                "\n\t\trentedOn=" + rentedOn +
+                ",\n\t\treturnedOn=" + returnedOn +
+                ",\n\t\tcustomer='" + customer + '\'' +
+                "\n\t}";
     }
 }
