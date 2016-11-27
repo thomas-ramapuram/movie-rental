@@ -5,15 +5,12 @@ import net.ramapuram.elia.manager.impl.MovieRentalManagerImpl;
 import net.ramapuram.elia.model.Movie;
 
 import java.util.*;
-import java.util.logging.Logger;
 
 /**
  * Created by Elia Thomas Ramapuram on 21/10/16.
  * as part of the Computer Science Project 2016-17
  */
 public class MovieCli {
-    private final static Logger LOGGER = Logger.getLogger(MovieCli.class.getName());
-
 
     private static final int EXIT                   =  1;
     private static final int AVAILABLE_MOVIES       =  2;
@@ -26,8 +23,8 @@ public class MovieCli {
     private static final int RETURN_MOVIE           =  9;
     private static final int LOAD_DATABASE          = 10;
     private static final int SAVE_DATABASE          = 11;
-    private static final int SERIALIZE_DATABASE     = 12;
-    private static final int DE_SERIALIZE_DATABASE  = 13;
+    private static final int LOAD_JSON_DATABASE     = 12;
+    private static final int SAVE_JSON_DATABASE     = 13;
 
 
     private static MovieRentalManager manager = new MovieRentalManagerImpl();
@@ -77,6 +74,12 @@ public class MovieCli {
                 case REMOVE_ALL_MOVIES:
                     manager.deleteAll();
                     break;
+                case LOAD_JSON_DATABASE:
+                    manager.loadJsonFile();
+                    break;
+                case SAVE_JSON_DATABASE:
+                    manager.saveJsonFile();
+                    break;
                 default:
                     System.out.format("There was a problem with your choice.  Try Again or type %d to exit\n", EXIT);
             }
@@ -86,26 +89,31 @@ public class MovieCli {
     }
 
     private static void printMenu() {
-        int count = 0;
-        Map<Integer, String> menuMap = new LinkedHashMap<Integer, String>() {{
-            put(EXIT,                   "Exit");
-            put(VIEW_MOVIE_DETAILS,     "View Movie Details");
-            put(REMOVE_MOVIE,           "Remove Movie");
-            put(RENT_MOVIE,             "Rent Movie");
-            put(ADD_MOVIE,              "Add Movie");
-            put(AVAILABLE_MOVIES,       "Available Movies");
-            put(ALL_MOVIES,             "All Movies");
-            put(LOAD_DATABASE,          "Load Database");
-            put(SAVE_DATABASE,          "Save Database");
-            put(RETURN_MOVIE,           "Return Movie");
-//            put(SERIALIZE_DATABASE,     "Serialize Database");
-//            put(DE_SERIALIZE_DATABASE,  "Deserialize Database");
-            put(REMOVE_ALL_MOVIES,      "Remove All Movies");
-        }};
-        menuMap = sortMap(menuMap);
+        Map<Integer, String> menuMap = new LinkedHashMap<Integer, String>();
+        menuMap.put(EXIT,                   "Exit");
+        menuMap.put(AVAILABLE_MOVIES,       "Available Movies");
+        menuMap.put(ALL_MOVIES,             "All Movies");
+        menuMap.put(VIEW_MOVIE_DETAILS,     "View Movie Details");
+        menuMap.put(ADD_MOVIE,              "Add Movie");
+        menuMap.put(REMOVE_MOVIE,           "Remove Movie");
+        menuMap.put(REMOVE_ALL_MOVIES,      "Remove All Movies");
+        menuMap.put(RENT_MOVIE,             "Rent Movie");
+        menuMap.put(RETURN_MOVIE,           "Return Movie");
+        menuMap.put(LOAD_DATABASE,          "Load Database");
+        menuMap.put(SAVE_DATABASE,          "Save Database");
+        menuMap.put(LOAD_JSON_DATABASE,     "Load Dtabase from JSON File");
+        menuMap.put(SAVE_JSON_DATABASE,     "Save Database in JSON Format");
+
         String deco = Util.repeat('=', 80);
-        System.out.printf("\n%sMenu%s\n", deco,deco);
+        //The statement prints '=' 80 times then prints 'Menu' then prints '=' 80 times
+        System.out.printf("\n%sMenu%s\n", deco,deco);  //printf prints string in a fromatted fashion.
         System.out.println("Enter your Choice");
+        int count = 0;
+        //Iterating through a set of Entries.   Entry is a data type which has a key and a value.
+        //An example of the new for loop.  which has 2 parts seperated by ':'
+        //the first part defines the type of one element.  The second part is the collection of the elemts
+        //The loop iteretates through each of the elements in the collection assigiing each element to the
+        // variable defined in the first part of the for loop.
         for(Map.Entry<Integer, String> entry : menuMap.entrySet()){
             count++;
             System.out.printf("%2d : %-30s",  entry.getKey(),entry.getValue());
@@ -116,44 +124,24 @@ public class MovieCli {
         System.out.printf("\n%sMenu%s\n", deco,deco);
     }
 
-    private static Map<Integer,String> sortMap(Map<Integer, String> menuMap) {
-        List<Map.Entry<Integer,String>> entries =
-                new ArrayList<Map.Entry<Integer, String>>(menuMap.entrySet());
-        Collections.sort(entries, new Comparator<Map.Entry<Integer,String>>() {
-            public int compare(Map.Entry<Integer,String> a, Map.Entry<Integer,String> b){
-                return a.getKey().compareTo(b.getKey());
-            }
-        });
-        Map<Integer, String> sortedMap = new LinkedHashMap<Integer, String>();
-        for (Map.Entry<Integer,String> entry : entries) {
-            sortedMap.put(entry.getKey(), entry.getValue());
-        }
-        return sortedMap;
-    }
 
     private static void displayMovies(List<Movie> movieList) {
         int count = 0;
         System.out.println(Util.repeat('=',166));
         System.out.print("|");
         for(int x=0; x<5;x++){
-            System.out.printf("%29s:%2s|", "Movie Name", "No");
+            System.out.printf("%26s:%2s:%2s|", "Movie Name", "A", "T");
         }
         System.out.println();
         System.out.println(Util.repeat('=',166));
         System.out.print("|");
-        movieList.sort(new Comparator<Movie>() {
-            @Override
-            public int compare(Movie o1, Movie o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
         for (Movie movie : movieList) {
             count++;
             String movieName = movie.getName();
-            if(movieName.length() > 30){
-                movieName = movieName.substring(0, 26) + "...";
+            if(movieName.length() > 27){
+                movieName = movieName.substring(0, 23) + "...";
             }
-            System.out.printf("%29s:%2d|", movieName, movie.getCopies());
+            System.out.printf("%26s:%2d:%2d|", movieName, movie.getAvailableCopies(), movie.getCopies());
             if(count%5 == 0){
                 System.out.println();
                 System.out.print("|");
@@ -165,12 +153,13 @@ public class MovieCli {
 
     private static void exit() {
         System.out.println("Exit");
-        System.exit(0);
+        System.exit(0);//0 means we exited the program normally
     }
 
     private static void availableMovies() {
         System.out.println("Available Movies");
-        displayMovies(manager.getAvailableMovies());
+        List<Movie> availableMovies = manager.getAvailableMovies();
+        displayMovies(availableMovies);
     }
 
     private static void addMovie() {
@@ -181,14 +170,16 @@ public class MovieCli {
         System.out.println("Enter Actors seperated by ',' ");
         String actorInput = getInput();
         String[] actorList = actorInput.split(",");
-        manager.addMovie(new Movie(movieName, copies, actorList));
+        Movie movie = new Movie(movieName, copies, actorList);
+        manager.addMovie(movie);
         System.out.println("Add Movies");
 
     }
 
     private static void allMovies() {
         System.out.println("All Movies");
-        displayMovies(manager.getAllMovies());
+        List<Movie> allMovies = manager.getAllMovies();
+        displayMovies(allMovies);
     }
 
     private static void saveDatabase() {
@@ -208,8 +199,12 @@ public class MovieCli {
         String customer = getInput();
         System.out.println("Enter Review or Enter empty String for no review");
         String review = getInput();
-        manager.returnMovie(movie, customer, review);
-        System.out.printf("The movie %s was returned by %s", movie, customer);
+        try {
+            manager.returnMovie(movie, customer, review);
+            System.out.printf("The movie %s was returned by %s", movie, customer);
+        } catch (RuntimeException exception){
+            System.out.println(exception.getMessage());
+        }
     }
 
     private static void rentMovie() {
@@ -217,8 +212,12 @@ public class MovieCli {
         String movie = getInput();
         System.out.println("Enter Customer");
         String customer = getInput();
-        manager.rentMovie(movie, customer);
-        System.out.printf("Movie %s rented to %s\n", movie, customer);
+        try{
+            manager.rentMovie(movie, customer);
+            System.out.printf("Movie %s rented to %s\n", movie, customer);
+        } catch (RuntimeException exception){
+            System.out.println(exception.getMessage());
+        }
     }
 
     private static void removeMovie() {

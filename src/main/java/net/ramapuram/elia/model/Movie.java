@@ -1,5 +1,6 @@
 package net.ramapuram.elia.model;
 
+import java.beans.Transient;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,6 +54,11 @@ public class Movie implements Serializable {
         return rentalList;
     }
 
+    @Transient
+    public int getAvailableCopies(){
+        return (copies - getActiveRentalList().size());
+    }
+
     public void addReview(String review){
         reviews.add(review);
     }
@@ -88,6 +94,7 @@ public class Movie implements Serializable {
         for(Rental rental: getActiveRentalList()){
             if(rental.getCustomer().equals(customerName)){
                 rental.setReturnedOn(new Date());
+                break;
             }
         }
     }

@@ -1,5 +1,8 @@
 package net.ramapuram.elia.manager.impl;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
 import net.ramapuram.elia.manager.MovieRentalManager;
 import net.ramapuram.elia.model.Movie;
 
@@ -20,8 +23,8 @@ public class MovieRentalManagerImpl implements MovieRentalManager {
         return data.get(name);
     }
 
-    public int getTotalNumberOfMovies(){
-        return data.keySet().size();
+    public int getTotalNumberOfMovies() {
+        return data.entrySet().size();
     }
 
     public void removeMovie(String name) {
@@ -38,8 +41,8 @@ public class MovieRentalManagerImpl implements MovieRentalManager {
 
     public List<Movie> getAvailableMovies() {
         List<Movie> rv = new ArrayList<Movie>();
-        for(Movie movie: data.values()){
-            if(movie.getCopies() > movie.getRentalList().size()){
+        for (Movie movie : data.values()) {
+            if (movie.getCopies() > movie.getActiveRentalList().size()) {
                 rv.add(movie);
             }
         }
@@ -48,7 +51,7 @@ public class MovieRentalManagerImpl implements MovieRentalManager {
 
     public void rentMovie(String movieName, String customerName) {
         Movie movie = getMovie(movieName);
-        if(movie == null){
+        if (movie == null) {
             throw new RuntimeException("Movie Not Found");
         }
         movie.rentMovie(customerName);
@@ -56,11 +59,11 @@ public class MovieRentalManagerImpl implements MovieRentalManager {
 
     public void returnMovie(String movieName, String customerName, String review) {
         Movie movie = getMovie(movieName);
-        if(movie == null){
+        if (movie == null) {
             throw new RuntimeException("Movie Not Found");
         }
         movie.returnMovie(customerName);
-        if (review.trim()!=""){
+        if (review.trim() != "") {
             movie.addReview(review);
         }
     }
@@ -72,10 +75,10 @@ public class MovieRentalManagerImpl implements MovieRentalManager {
             data = (HashMap<String, Movie>) in.readObject();
             in.close();
             fileIn.close();
-        }catch(IOException i) {
+        } catch (IOException i) {
             i.printStackTrace();
             return;
-        }catch(ClassNotFoundException c) {
+        } catch (ClassNotFoundException c) {
             System.out.println("Class not found");
             c.printStackTrace();
             return;
@@ -86,6 +89,7 @@ public class MovieRentalManagerImpl implements MovieRentalManager {
         data = new HashMap<String, Movie>();
     }
 
+    @Override
     public void saveDatabase() {
         try {
             FileOutputStream fileOut =
@@ -94,9 +98,55 @@ public class MovieRentalManagerImpl implements MovieRentalManager {
             out.writeObject(data);
             out.close();
             fileOut.close();
-            System.out.printf("Serialized data is saved in "+FILE_PATH_BIN);
-        }catch(IOException i) {
+        } catch (IOException i) {
             i.printStackTrace();
         }
     }
+
+    @Override
+    public void loadJsonFile() {
+        FileReader fileReader = null;
+        try {
+            fileReader = new FileReader(FILE_PATH_JSON);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        JsonReader reader = new JsonReader(fileReader);
+
+        Type listType = new TypeToken<HashMap<String, Movie>>() {
+        }.getType();
+        data = new Gson().fromJson(reader, listType);
+    }
+
+    @Override
+    public void saveJsonFile() {
+        File file = new File(FILE_PATH_JSON);
+
+        // if file does not exists, then create it
+        if (!file.exists()) {
+            try {
+                file.getParentFile().mkdirs();
+                file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        Gson gson = new Gson();
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter(new FileWriter(file));
+            writer.write(gson.toJson(data));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (writer != null)
+                    writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 }
