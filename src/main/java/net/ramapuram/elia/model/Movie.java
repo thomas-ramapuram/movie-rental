@@ -16,8 +16,8 @@ public class Movie implements Serializable {
     private String name;
     private int copies;
     private String[] actorList;
-    private List<String> reviews = new ArrayList<String>();
-    private List<Rental> rentalList = new ArrayList<Rental>();
+    private List<String> reviews = new ArrayList<>();
+    private List<Rental> rentalList = new ArrayList<>();
 
     public Movie(String name, int copies, String[] actorList) {
         this.name = name;
@@ -31,6 +31,14 @@ public class Movie implements Serializable {
         this.actorList = actorList;
         this.reviews = Arrays.asList(reviews);
         this.rentalList = rentals;
+    }
+
+    public void setCopies(int copies){
+        this.copies = copies;
+    }
+
+    public void setActorList(String[] actorList){
+        this.actorList = actorList;
     }
 
     public String getName() {
@@ -64,7 +72,7 @@ public class Movie implements Serializable {
     }
 
     public List<Rental> getActiveRentalList() {
-        List<Rental> rv = new ArrayList<Rental>();
+        List<Rental> rv = new ArrayList<>();
         for (Rental rental : rentalList) {
             if (rental.isActive()) {
                 rv.add(rental);

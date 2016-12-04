@@ -17,14 +17,15 @@ public class MovieCli {
     private static final int ALL_MOVIES             =  3;
     private static final int VIEW_MOVIE_DETAILS     =  4;
     private static final int ADD_MOVIE              =  5;
-    private static final int REMOVE_MOVIE           =  6;
-    private static final int REMOVE_ALL_MOVIES      =  7;
-    private static final int RENT_MOVIE             =  8;
-    private static final int RETURN_MOVIE           =  9;
-    private static final int LOAD_DATABASE          = 10;
-    private static final int SAVE_DATABASE          = 11;
-    private static final int LOAD_JSON_DATABASE     = 12;
-    private static final int SAVE_JSON_DATABASE     = 13;
+    private static final int EDIT_MOVIE             =  6;
+    private static final int REMOVE_MOVIE           =  7;
+    private static final int REMOVE_ALL_MOVIES      =  8;
+    private static final int RENT_MOVIE             =  9;
+    private static final int RETURN_MOVIE           = 10;
+    private static final int LOAD_DATABASE          = 11;
+    private static final int SAVE_DATABASE          = 12;
+    private static final int LOAD_JSON_DATABASE     = 13;
+    private static final int SAVE_JSON_DATABASE     = 14;
 
 
     private static MovieRentalManager manager = new MovieRentalManagerImpl();
@@ -36,13 +37,13 @@ public class MovieCli {
     }
 
     private static void mainLoop() {
-        while (true) {
+        boolean running = true;
+        while (running) {
             printMenu();
-            int i = 0;
-                i = Integer.parseInt(getInput());
+            int i = Integer.parseInt(getInput());
             switch (i) {
                 case EXIT:
-                    exit();
+                    running = false;
                     break;
                 case VIEW_MOVIE_DETAILS:
                     viewMovieDetails();
@@ -55,6 +56,9 @@ public class MovieCli {
                     break;
                 case ADD_MOVIE:
                     addMovie();
+                    break;
+                case EDIT_MOVIE:
+                    editMovie();
                     break;
                 case AVAILABLE_MOVIES:
                     availableMovies();
@@ -89,12 +93,13 @@ public class MovieCli {
     }
 
     private static void printMenu() {
-        Map<Integer, String> menuMap = new LinkedHashMap<Integer, String>();
+        Map<Integer, String> menuMap = new LinkedHashMap<>();
         menuMap.put(EXIT,                   "Exit");
         menuMap.put(AVAILABLE_MOVIES,       "Available Movies");
         menuMap.put(ALL_MOVIES,             "All Movies");
         menuMap.put(VIEW_MOVIE_DETAILS,     "View Movie Details");
         menuMap.put(ADD_MOVIE,              "Add Movie");
+        menuMap.put(EDIT_MOVIE,             "Edit Movie");
         menuMap.put(REMOVE_MOVIE,           "Remove Movie");
         menuMap.put(REMOVE_ALL_MOVIES,      "Remove All Movies");
         menuMap.put(RENT_MOVIE,             "Rent Movie");
@@ -151,11 +156,6 @@ public class MovieCli {
         System.out.println(Util.repeat('=',166));
     }
 
-    private static void exit() {
-        System.out.println("Exit");
-        System.exit(0);//0 means we exited the program normally
-    }
-
     private static void availableMovies() {
         System.out.println("Available Movies");
         List<Movie> availableMovies = manager.getAvailableMovies();
@@ -165,6 +165,10 @@ public class MovieCli {
     private static void addMovie() {
         System.out.println("Type Name of the Movie:");
         String movieName = getInput();
+        if(manager.getMovie(movieName)!=null){
+            System.out.printf("Movie %s already exists.  Try edit movie instead\n", movieName);
+            return;
+        }
         System.out.println("Type Number of copies");
         Integer copies = Integer.parseInt(getInput());
         System.out.println("Enter Actors seperated by ',' ");
@@ -175,6 +179,25 @@ public class MovieCli {
         System.out.println("Add Movies");
 
     }
+    private static void editMovie() {
+        System.out.println("Type Name of the Movie:");
+        String movieName = getInput();
+        Movie movie = manager.getMovie(movieName);
+        if(movie == null){
+            System.out.println("Movie does not exist in database.  Try add movie?");
+            return;
+        }
+        System.out.println("Type Number of copies");
+        Integer copies = Integer.parseInt(getInput());
+        System.out.println("Enter Actors seperated by ',' ");
+        String actorInput = getInput();
+        String[] actorList = actorInput.split(",");
+        movie.setCopies(copies);
+        movie.setActorList(actorList);
+        manager.addMovie(movie);
+        System.out.printf("Movie %s Update\n", movie.getName());
+    }
+
 
     private static void allMovies() {
         System.out.println("All Movies");
@@ -240,8 +263,7 @@ public class MovieCli {
 
     private static String getInput(){
         Scanner sc = new Scanner(System.in);
-        String rv = sc.nextLine();
-        return rv;
+        return sc.nextLine();
     }
 
 }
