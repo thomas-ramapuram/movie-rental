@@ -4,12 +4,22 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
+ * The Rental Details of the Movie
  * Created by Elia Thomas Ramapuram on 29/09/16.
  * as part of the Computer Science Project 2016-17
  */
 public class Rental implements Serializable {
+    /**
+     * The Day it was rented on
+     */
     private Date rentedOn;
+    /**
+     * The Day the movie was returned
+     */
     private Date returnedOn;
+    /**
+     * The Customer who rented the movie.
+     */
     private String customer;
 
 

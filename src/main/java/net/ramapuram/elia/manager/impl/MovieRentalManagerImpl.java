@@ -1,8 +1,5 @@
 package net.ramapuram.elia.manager.impl;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonReader;
 import net.ramapuram.elia.manager.MovieRentalManager;
 import net.ramapuram.elia.model.Movie;
 
@@ -16,7 +13,6 @@ import java.util.*;
  */
 public class MovieRentalManagerImpl implements MovieRentalManager {
     private Map<String, Movie> data = new HashMap<String, Movie>();
-    public static final String FILE_PATH_JSON = System.getProperty("user.home") + File.separator + ".moviedb" + File.separator + "movies.json";
     public static final String FILE_PATH_BIN = System.getProperty("user.home") + File.separator + ".moviedb" + File.separator + "movies.ser";
 
     public Movie getMovie(String name) {
@@ -40,13 +36,13 @@ public class MovieRentalManagerImpl implements MovieRentalManager {
     }
 
     public List<Movie> getAvailableMovies() {
-        List<Movie> rv = new ArrayList<Movie>();
+        List<Movie> returnValue = new ArrayList<Movie>();
         for (Movie movie : data.values()) {
             if (movie.getCopies() > movie.getActiveRentalList().size()) {
-                rv.add(movie);
+                returnValue.add(movie);
             }
         }
-        return rv;
+        return returnValue;
     }
 
     public void rentMovie(String movieName, String customerName) {
@@ -63,7 +59,7 @@ public class MovieRentalManagerImpl implements MovieRentalManager {
             throw new RuntimeException("Movie Not Found");
         }
         movie.returnMovie(customerName);
-        if (review.trim() != "") {
+        if (review.trim().isEmpty()) {
             movie.addReview(review);
         }
     }
@@ -102,51 +98,4 @@ public class MovieRentalManagerImpl implements MovieRentalManager {
             i.printStackTrace();
         }
     }
-
-    @Override
-    public void loadJsonFile() {
-        FileReader fileReader = null;
-        try {
-            fileReader = new FileReader(FILE_PATH_JSON);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        JsonReader reader = new JsonReader(fileReader);
-
-        Type listType = new TypeToken<HashMap<String, Movie>>() {
-        }.getType();
-        data = new Gson().fromJson(reader, listType);
-    }
-
-    @Override
-    public void saveJsonFile() {
-        File file = new File(FILE_PATH_JSON);
-
-        // if file does not exists, then create it
-        if (!file.exists()) {
-            try {
-                file.getParentFile().mkdirs();
-                file.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        Gson gson = new Gson();
-        BufferedWriter writer = null;
-        try {
-            writer = new BufferedWriter(new FileWriter(file));
-            writer.write(gson.toJson(data));
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (writer != null)
-                    writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
 }

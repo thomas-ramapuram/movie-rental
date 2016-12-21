@@ -19,6 +19,4 @@ public interface MovieRentalManager {
     void loadDatabase();
     void saveDatabase();
     void deleteAll();
-    void loadJsonFile();
-    void saveJsonFile();
 }
